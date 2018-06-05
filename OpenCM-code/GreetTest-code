@@ -1,0 +1,216 @@
+  //Dynamixel on Serial1(USART1)  <-OpenCM9.04
+Dynamixel Dxl(1);
+
+//Angle conversion (degree to 0-1023)
+int d (float input){
+  int output;
+  if (input < 0){
+    output = (input+150)/300*1024;
+  }
+  else{
+    output = input/300*1023+512;
+  }
+ return (output);
+}
+
+void MJC(double GP[17],int T){;
+  double CP[17];
+  int speed[17];
+  int ID;
+  CP[0]=0;
+  
+  for ( ID=1; ID <= 16;ID ++){   
+    GP[ID]=d(GP[ID]);              // convert angle to control mircocode
+    CP[ID] = Dxl.readWord(ID,37);   //readcurrent postion to CP
+    speed[ID] = ((GP[ID]-CP[ID])*1000/T)/2.286; //unit is about 0.111rpm = 0.67deg/s=2.286 num  
+    if(speed[ID]<0){speed[ID]= -speed[ID];}  
+    if(speed[ID]>1023){speed[ID]=1023;}
+  }
+  
+  
+  
+  word SyncPage1[48]=
+  { 
+  1,GP[1],speed[1],  
+  2,GP[2],speed[2],  
+  3,GP[3],speed[3],
+  4,GP[4],speed[4],
+  5,GP[5],speed[5],
+  6,GP[6],speed[6],
+  7,GP[7],speed[7],
+  8,GP[8],speed[8],
+  9,GP[9],speed[9],
+  10,GP[10],speed[10],
+  11,GP[11],speed[11],
+  12,GP[12],speed[12],
+  13,GP[13],speed[13],
+  14,GP[14],speed[14],
+  15,GP[15],speed[15],
+  16,GP[16],speed[16]};
+  
+  
+   // byte syncWrite(byte start_addr, byte num_of_data, int *param, int array_length); 
+  Dxl.syncWrite(30,2,SyncPage1,48);
+  
+  delay(1.1*T); // move delay time from SJC to here
+}
+
+void setup() {
+  // Dynamixel 2.0 Baudrate -> 0: 9600, 1: 57600, 2: 115200, 3: 1Mbps
+  Dxl.begin(3);
+  int ID;
+
+  //Dxl.maxTorque(13,0);
+  //Dxl.maxTorque(14,0);
+  for ( ID=1; ID <= 16;ID ++){  
+    Dxl.writeByte(ID,24,0); // set Torque modle disable
+    //Dxl.writeWord(ID,35,1023);// set Torqur Limit to Max
+  }
+  
+  for ( ID=13; ID <= 14;ID ++){  
+    Dxl.writeByte(ID,24,1); // set Torque modle Enable
+    Dxl.writeWord(ID,35,1023);// set Torqur Limit to Max
+  }
+
+  //for ( ID=9; ID <= 16;ID ++){ 
+  //  Dxl.writeByte(ID,29,64); // set leg P gain to 64
+  //}
+  
+  double GP1[17] = {0,0,0,-73.24,73.24,0,0,0,0,-26.37,26.37,29.3,-29.3,13.18,-13.18,0,0};
+    MJC(GP1,500);
+  
+}
+
+
+
+void loop(){
+  
+double GP[17];  //Goal Position Array
+int T;      // Run Time
+int ID;
+GP[0]=0;
+ 
+//motion 1
+  GP[1] = 0;
+  GP[2] = 0;
+  GP[3] = -73.24;
+  GP[4] = 73.24; 
+  GP[5] = 0;
+  GP[6] = 0;
+  GP[7] = 0;
+  GP[8] = 0;
+  GP[9] = -26.37;
+  GP[10] = 26.37;
+  GP[11] = 35.0; //29.3;
+  GP[12] = -35.0; //-29.3;
+  GP[13] = 18.0; //13.18;
+  GP[14] = -18.0; //-13.18;
+  GP[15] = 0;
+  GP[16] = 0;
+  T = 391;
+  MJC(GP,T);
+  
+  delay(2000);
+  
+//motion 2
+  GP[1] = 0; //-22.27;
+  GP[2] = 0; //-44.24;
+  GP[3] = -73.24;
+  GP[4] = 73.24; 
+  GP[5] = 0;
+  GP[6] = 0;
+  GP[7] = 0;
+  GP[8] = 0;
+  GP[9] = -26.37;
+  GP[10] = 26.37; //26.07;
+  GP[11] = 35.0; //29.3;
+  GP[12] = -35.0; //-29.3;
+  GP[13] = 18.0; //13.18;
+  GP[14] = -18.0; //-13.18; //-13.48;
+  GP[15] = 0;
+  GP[16] = 0;
+  T = 195;
+  MJC(GP,T);
+
+//motion 3
+  GP[1] = 0; //-22.27;
+  GP[2] = 0; //-44.24;
+  GP[3] = -73.24; //-62.99;
+  GP[4] = 73.24; //92.58; 
+  GP[5] = 0; //-71.78;
+  GP[6] = 0; //58.59;
+  GP[7] = 0;
+  GP[8] = 0;
+  GP[9] = -26.37;
+  GP[10] = 26.37; //26.07;
+  GP[11] = 35.0; //29.3;
+  GP[12] = -35.0; //-29.3;
+  GP[13] = 18.0; //13.18;
+  GP[14] = -18.0; //-13.18; //-13.48;
+  GP[15] = 0;
+  GP[16] = 0;
+  T = 390;
+  MJC(GP,T);
+
+
+//motion 4
+  GP[1] = 0; //-22.27;
+  GP[2] = 0; //-69.73;
+  GP[3] = -73.24; //-62.99;
+  GP[4] = 73.24; //92.58; 
+  GP[5] = 0; //-71.78;
+  GP[6] = 0; //58.59;
+  GP[7] = 0;
+  GP[8] = 0;
+  GP[9] = -80; //-79.39;
+  GP[10] = 80; //82.91;
+  GP[11] = 29.3;
+  GP[12] = -29.3;
+  GP[13] = -10.55; //-10.25;
+  GP[14] = 10.55;
+  GP[15] = 0;
+  GP[16] = 0;
+  T = 586;
+  MJC(GP,T); 
+
+//motion 5
+  GP[1] = 0; //-22.27;
+  GP[2] = 0; //-69.73;
+  GP[3] = -73.24; //-62.99;
+  GP[4] = 73.24; //92.58; 
+  GP[5] = 0; //-71.78;
+  GP[6] = 0; //58.59;
+  GP[7] = 0;
+  GP[8] = 0;
+  GP[9] = -80; //-79.39;
+  GP[10] = 80; //82.91;
+  GP[11] = 29.3;
+  GP[12] = -29.3;
+  GP[13] = -10.55; //-10.25;
+  GP[14] = 10.55;
+  GP[15] = 0;
+  GP[16] = 0;
+  T = 977;
+  MJC(GP,T); 
+
+//motion 6
+  GP[1] = 0; //-22.27;
+  GP[2] = 0; //-44.24;
+  GP[3] = -73.24;
+  GP[4] = 73.24; 
+  GP[5] = 0;
+  GP[6] = 0;
+  GP[7] = 0;
+  GP[8] = 0;
+  GP[9] = -26.37;
+  GP[10] = 26.37; //26.07;
+  GP[11] = 35.0; //29.3;
+  GP[12] = -35.0; //-29.3;
+  GP[13] = 18.0; //13.18;
+  GP[14] = -18.0; //-13.18; //-13.48;
+  GP[15] = 0;
+  GP[16] = 0;
+  T = 586;
+  MJC(GP,T); 
+
+} 
